@@ -1,0 +1,22 @@
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    email VARCHAR(50) UNIQUE,
+    password VARCHAR(255),
+    bio TEXT,
+    role ENUM('instructor', 'admin', 'student', 'tester') DEFAULT 'student'
+);
+
+CREATE TABLE Instructors (
+    id INT PRIMARY KEY,
+    affiliation VARCHAR(100),
+    years_experience INT,
+    FOREIGN KEY (id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Students (
+    id INT PRIMARY KEY,
+    affiliation VARCHAR(100),
+    FOREIGN KEY (id) REFERENCES Users(id) ON DELETE CASCADE
+);
+

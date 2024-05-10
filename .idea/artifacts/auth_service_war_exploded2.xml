@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="auth-service:war exploded2">
+    <output-path>$PROJECT_DIR$/out/artifacts/auth_service_war_exploded2</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="auth-service" />
+        </element>
+      </element>
+      <element id="javaee-facet-resources" facet="auth-service/web/Web" />
+    </root>
+  </artifact>
+</component>
