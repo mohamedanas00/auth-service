@@ -5,7 +5,9 @@ import org.example.authservice.model.Instructor;
 import org.example.authservice.model.User;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.model.response.SignInResponse;
+import org.example.authservice.model.response.TokenResponse;
 import org.example.authservice.utils.Hashing;
+import org.example.authservice.utils.TokenService;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -14,6 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Stateless
 public class AuthBSL {
@@ -53,8 +57,12 @@ public class AuthBSL {
 
 				String userRole = resultSet.getString("role");
 				int userId = resultSet.getInt("id");
-				SignInResponse signInResponse = new SignInResponse(userId,userRole);
-				return Response.status(HttpServletResponse.SC_OK).entity(signInResponse).build();
+				Map<String, Object> payload = new HashMap<>();
+				payload.put("id", userId);
+				payload.put("role", userRole);
+				String token = TokenService.generateToken(payload);
+				TokenResponse tokenResponse = new TokenResponse(token);
+				return Response.status(HttpServletResponse.SC_OK).entity(tokenResponse).build();
 			} else {
 				message="Invalid email or password!";
 				generalResponse = new GeneralResponse(message);
