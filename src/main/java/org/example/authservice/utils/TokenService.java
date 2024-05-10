@@ -37,22 +37,6 @@ public class TokenService {
 				.signWith(SECRET_KEY)
 				.compact();
 	}
-
-	public static Map<String, Object> verifyToken(String token) {
-		try {
-			Claims claims = Jwts.parserBuilder()
-					.setSigningKey(SECRET_KEY)
-					.build()
-					.parseClaimsJws(token)
-					.getBody();
-
-			// Convert Claims to Map
-			return new HashMap<>(claims);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
 }
 
 

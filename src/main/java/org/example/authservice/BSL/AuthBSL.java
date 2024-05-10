@@ -57,9 +57,14 @@ public class AuthBSL {
 
 				String userRole = resultSet.getString("role");
 				int userId = resultSet.getInt("id");
+				String name = resultSet.getString("name");
+
 				Map<String, Object> payload = new HashMap<>();
 				payload.put("id", userId);
 				payload.put("role", userRole);
+				payload.put("name", name);
+				payload.put("email", email);
+
 				String token = TokenService.generateToken(payload);
 				TokenResponse tokenResponse = new TokenResponse(token);
 				return Response.status(HttpServletResponse.SC_OK).entity(tokenResponse).build();
