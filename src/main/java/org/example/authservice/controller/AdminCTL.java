@@ -30,10 +30,10 @@ public class AdminCTL {
 	@Path("/ViewInstructors/{id}")
 	public Response ViewInstructorsAccounts(@PathParam("id") int id) {
 		try {
-//			if(!authUtil.isAdmin(id)){
-//				generalResponse =new GeneralResponse("Unauthorized!");
-//				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
-//			}
+			if(!authUtil.isAdmin(id)){
+				generalResponse =new GeneralResponse("Unauthorized!");
+				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
+			}
 			return adminBSL.ViewInstructorsAccounts();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -46,10 +46,10 @@ public class AdminCTL {
 	@Path("/ViewStudents/{id}")
 	public Response ViewStudentsAccounts(@PathParam("id") int id) {
 		try {
-//			if(!authUtil.isAdmin(id)){
-//				generalResponse =new GeneralResponse("Unauthorized!");
-//				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
-//			}
+			if(!authUtil.isAdmin(id)){
+				generalResponse =new GeneralResponse("Unauthorized!");
+				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
+			}
 			return adminBSL.ViewStudentAccounts();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -62,10 +62,10 @@ public class AdminCTL {
 	@Path("/ViewCenterTest/{id}")
 	public Response ViewCenterTestAccounts(@PathParam("id") int id) {
 		try {
-//			if(!authUtil.isAdmin(id)){
-//				generalResponse =new GeneralResponse("Unauthorized!");
-//				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
-//			}
+			if(!authUtil.isAdmin(id)){
+				generalResponse =new GeneralResponse("Unauthorized!");
+				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
+			}
 			return adminBSL.ViewCenterTestAccounts();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -73,6 +73,23 @@ public class AdminCTL {
 			return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR).entity(generalResponse).build();
 		}
 	}
+
+	@DELETE
+	@Path("/DeleteUser/{id}")
+	public Response DeleteUserAccount(@PathParam("id") int id, @QueryParam("userId") int userId) {
+		try {
+			if(!authUtil.isAdmin(id)){
+				generalResponse =new GeneralResponse("Unauthorized!");
+				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
+			}
+			return adminBSL.DeleteAccount(userId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			generalResponse = new GeneralResponse("An error occurred while Delete Account");
+			return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR).entity(generalResponse).build();
+		}
+	}
+
 
 
 }

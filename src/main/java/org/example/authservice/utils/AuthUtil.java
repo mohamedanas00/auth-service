@@ -60,5 +60,29 @@ public class AuthUtil {
 		return null;
 	}
 
+	public boolean userExists(int id, Connection connection) throws SQLException {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+			String query = "SELECT COUNT(*) FROM Users WHERE id = ?";
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setInt(1, id);
+			resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				int count = resultSet.getInt(1);
+				return count > 0;
+			}
+			return false;
+		} finally {
+			if (resultSet != null) {
+				resultSet.close();
+			}
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+		}
+	}
+
+
 
 }

@@ -7,6 +7,7 @@ import org.example.authservice.model.Instructor;
 import org.example.authservice.model.Student;
 import org.example.authservice.model.User;
 import org.example.authservice.model.response.GeneralResponse;
+import org.example.authservice.utils.AuthUtil;
 import org.example.authservice.utils.Hashing;
 
 import javax.ejb.Stateless;
@@ -25,6 +26,8 @@ import java.util.List;
 public class AdminBSL {
 	@Inject
 	GeneralResponse generalResponse;
+	@Inject
+	AuthUtil authUtil;
 	@Inject
 	Hashing hashing;
 
@@ -148,6 +151,98 @@ public class AdminBSL {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	public Response DeleteAccount(int id){
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		if (id <= 0) {
+			generalResponse=new GeneralResponse("Invalid user ID.");
+			return Response.status(Response.Status.BAD_REQUEST)
+					.entity(generalResponse).build();
+		}
+		try {
+			connection = DatabaseManager.getConnection();
+
+			String query = "DELETE FROM Users WHERE id = ?";
+			preparedStatement = connection.prepareStatement(query);
+
+			preparedStatement.setInt(1, id);
+			int rowsAffected = preparedStatement.executeUpdate();
+
+			if (rowsAffected > 0) {
+				generalResponse=new GeneralResponse("User with ID " + id + " deleted successfully.");
+				return Response.status(HttpServletResponse.SC_OK).entity(generalResponse).build();
+			} else {
+				generalResponse=new GeneralResponse("User with ID " + id + " not found.");
+				return Response.status(HttpServletResponse.SC_NOT_FOUND)
+						.entity(generalResponse).build();
+			}
+
+		} catch (SQLException e) {
+			generalResponse=new GeneralResponse("An error occurred while deleting user with ID " + id + ".");
+			return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+					.entity(generalResponse).build();
+		}finally {
+			try {
+				if (preparedStatement != null) preparedStatement.close();
+				if (connection != null) connection.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	//TODO: Update User
+	public Response updateUser(int userId, JsonObject jsonObject) {
+		// Check if the user ID is valid
+		if (userId <= 0) {
+			return Response.status(Response.Status.BAD_REQUEST)
+					.entity(new GeneralResponse("Invalid user ID."))
+					.build();
+		}
+
+		// Extract the updated user details from the JSON object
+		String name = jsonObject.getString("name");
+		String email = jsonObject.getString("email");
+		String password = jsonObject.getString("password");
+		String role = jsonObject.getString("role");
+
+
+		try (Connection connection = DatabaseManager.getConnection()) {
+			// Check if the user exists
+			if (!authUtil.userExists(userId, connection)) {
+				return Response.status(Response.Status.NOT_FOUND)
+						.entity(new GeneralResponse("User with ID " + userId + " not found."))
+						.build();
+			}
+
+			// Update the user details in the Users table
+			String updateUserQuery = "UPDATE Users SET name = ?, email = ?, password = ?, role = ? WHERE id = ?";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(updateUserQuery)) {
+				preparedStatement.setString(1, name);
+				preparedStatement.setString(2, email);
+				preparedStatement.setString(3, password);
+				preparedStatement.setString(4, role);
+				preparedStatement.setInt(5, userId);
+
+				int rowsAffected = preparedStatement.executeUpdate();
+
+				if (rowsAffected > 0) {
+					return Response.status(Response.Status.OK)
+							.entity(new GeneralResponse("User with ID " + userId + " updated successfully."))
+							.build();
+				} else {
+					return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+							.entity(new GeneralResponse("Failed to update user with ID " + userId + "."))
+							.build();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity(new GeneralResponse("An error occurred while updating user with ID " + userId + "."))
+					.build();
 		}
 	}
 
