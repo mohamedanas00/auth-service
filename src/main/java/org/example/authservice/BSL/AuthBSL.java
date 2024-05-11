@@ -43,7 +43,7 @@ public class AuthBSL {
 			password=hashing.doHashing(password);
 
 			// Query to check if the user exists with the provided username and password
-			String query = "SELECT * FROM Users WHERE email = ? AND password = ?";
+			String query = "SELECT * FROM Users WHERE BINARY email = ? AND password = ?";
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setString(1, email);
 			preparedStatement.setString(2, password);
@@ -66,7 +66,7 @@ public class AuthBSL {
 				payload.put("email", email);
 
 				String token = TokenService.generateToken(payload);
-				TokenResponse tokenResponse = new TokenResponse(token);
+				TokenResponse tokenResponse = new TokenResponse(token,userRole);
 				return Response.status(HttpServletResponse.SC_OK).entity(tokenResponse).build();
 			} else {
 				message="Invalid email or password!";
@@ -95,12 +95,11 @@ public class AuthBSL {
 		}
 	}
 
-	// Method to check if a user already exists with the given email
 	private boolean userExists(String email,Connection connection) throws SQLException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		try {
-			String query = "SELECT COUNT(*) FROM Users WHERE email = ?";
+			String query = "SELECT COUNT(*) FROM Users WHERE BINARY email = ?";
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setString(1, email);
 			resultSet = preparedStatement.executeQuery();

@@ -5,6 +5,7 @@ import org.example.authservice.model.User;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.utils.AuthUtil;
 import org.example.authservice.utils.RoleProvider;
+import org.example.authservice.utils.TokenService;
 
 import javax.inject.Inject;
 import javax.json.JsonObject;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Map;
 
 @Path("/admin")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -28,8 +30,13 @@ public class AdminCTL {
 
 	@GET
 	@Path("/ViewInstructors/{id}")
-	public Response ViewInstructorsAccounts(@PathParam("id") int id) {
+	public Response ViewInstructorsAccounts(@HeaderParam("token") String token) {
 		try {
+			Map<String, Object> payload = TokenService.verifyToken(token);
+			if (payload == null) {
+				return generalResponse.badRequestResponse("Invalid token");
+			}
+			int id = (int) payload.get("id");
 			if(!authUtil.isAdmin(id)){
 				generalResponse =new GeneralResponse("Unauthorized!");
 				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
@@ -44,8 +51,13 @@ public class AdminCTL {
 
 	@GET
 	@Path("/ViewStudents/{id}")
-	public Response ViewStudentsAccounts(@PathParam("id") int id) {
+	public Response ViewStudentsAccounts(@HeaderParam("token") String token) {
 		try {
+			Map<String, Object> payload = TokenService.verifyToken(token);
+			if (payload == null) {
+				return generalResponse.badRequestResponse("Invalid token");
+			}
+			int id = (int) payload.get("id");
 			if(!authUtil.isAdmin(id)){
 				generalResponse =new GeneralResponse("Unauthorized!");
 				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
@@ -60,8 +72,13 @@ public class AdminCTL {
 
 	@GET
 	@Path("/ViewCenterTest/{id}")
-	public Response ViewCenterTestAccounts(@PathParam("id") int id) {
+	public Response ViewCenterTestAccounts(@HeaderParam("token") String token) {
 		try {
+			Map<String, Object> payload = TokenService.verifyToken(token);
+			if (payload == null) {
+				return generalResponse.badRequestResponse("Invalid token");
+			}
+			int id = (int) payload.get("id");
 			if(!authUtil.isAdmin(id)){
 				generalResponse =new GeneralResponse("Unauthorized!");
 				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
@@ -76,8 +93,13 @@ public class AdminCTL {
 
 	@DELETE
 	@Path("/DeleteUser/{id}")
-	public Response DeleteUserAccount(@PathParam("id") int id, @QueryParam("userId") int userId) {
+	public Response DeleteUserAccount(@HeaderParam("token") String token, @PathParam("id") int userId) {
 		try {
+			Map<String, Object> payload = TokenService.verifyToken(token);
+			if (payload == null) {
+				return generalResponse.badRequestResponse("Invalid token");
+			}
+			int id = (int) payload.get("id");
 			if(!authUtil.isAdmin(id)){
 				generalResponse =new GeneralResponse("Unauthorized!");
 				return Response.status(HttpServletResponse.SC_UNAUTHORIZED).entity(generalResponse).build();
