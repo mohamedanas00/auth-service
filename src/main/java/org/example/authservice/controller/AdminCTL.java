@@ -29,7 +29,7 @@ public class AdminCTL {
 	private AuthUtil authUtil;
 
 	@GET
-	@Path("/ViewInstructors/{id}")
+	@Path("/ViewInstructors")
 	public Response ViewInstructorsAccounts(@HeaderParam("token") String token) {
 		try {
 			Map<String, Object> payload = TokenService.verifyToken(token);
@@ -50,7 +50,7 @@ public class AdminCTL {
 	}
 
 	@GET
-	@Path("/ViewStudents/{id}")
+	@Path("/ViewStudents")
 	public Response ViewStudentsAccounts(@HeaderParam("token") String token) {
 		try {
 			Map<String, Object> payload = TokenService.verifyToken(token);
@@ -71,7 +71,7 @@ public class AdminCTL {
 	}
 
 	@GET
-	@Path("/ViewCenterTest/{id}")
+	@Path("/ViewCenterTest")
 	public Response ViewCenterTestAccounts(@HeaderParam("token") String token) {
 		try {
 			Map<String, Object> payload = TokenService.verifyToken(token);

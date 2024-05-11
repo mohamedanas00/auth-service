@@ -39,6 +39,17 @@ public class AuthCTL {
 
 
 	@POST
+	@Path("/CreateTestCenter")
+	public Response CreateTestCenter(JsonObject jsonObject){
+		try {
+			return authBSL.CreateTestCenterAccount(jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+			generalResponse = new GeneralResponse("An error occurred during Create Test Center Account!");
+			return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR).entity(generalResponse).build();
+		}
+	}
+	@POST
 	@Path("/sign_in")
 	public Response SignIn(UserCredentials credentials) {
 		try {

@@ -95,29 +95,6 @@ public class AuthBSL {
 		}
 	}
 
-	private boolean userExists(String email,Connection connection) throws SQLException {
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-		try {
-			String query = "SELECT COUNT(*) FROM Users WHERE BINARY email = ?";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, email);
-			resultSet = preparedStatement.executeQuery();
-			if (resultSet.next()) {
-				int count = resultSet.getInt(1);
-				return count > 0;
-			}
-			return false;
-		} finally {
-			if (resultSet != null) {
-				resultSet.close();
-			}
-			if (preparedStatement != null) {
-				preparedStatement.close();
-			}
-		}
-	}
-
 	public Response RegisterUser(JsonObject jsonObject) {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
@@ -141,7 +118,7 @@ public class AuthBSL {
 			String bio = jsonObject.getString("bio");
 
 			String query = "";
-			if (role.equals("instructor")||role.equals("student")||role.equals("tester")) {
+			if (role.equals("instructor")||role.equals("student")) {
 				query = "INSERT INTO Users (name, email, password, role,bio) VALUES (?, ?, ?, ?, ?)";
 			} else {
 				message = "Invalid role specified";
@@ -206,5 +183,118 @@ public class AuthBSL {
 			}
 		}
 	}
+
+	public Response CreateTestCenterAccount(JsonObject jsonObject) {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String message = null;
+		try {
+			connection = DatabaseManager.getConnection();
+
+			// Additional check to ensure name not found for any tester
+			String name = jsonObject.getString("name");
+			if (userNameExistsForTester(name, connection)) {
+				message = "Name already exists for a TesterCenter";
+				return Response.status(HttpServletResponse.SC_CONFLICT)
+						.entity(new GeneralResponse(message)).build();
+			}
+
+			// Check if user already exists
+			String email = jsonObject.getString("email");
+			if (userExists(email, connection)) {
+				message = "User already exists";
+				return Response.status(HttpServletResponse.SC_CONFLICT)
+						.entity(new GeneralResponse(message)).build();
+			}
+
+			// Hash the password before storing
+			String password = jsonObject.getString("password");
+			String hashedPassword = hashing.doHashing(password);
+
+			String role = jsonObject.getString("role");
+			String bio = jsonObject.getString("bio");
+
+			String query = "";
+			if ( role.equals("tester")) {
+				query = "INSERT INTO Users (name, email, password, role,bio) VALUES (?, ?, ?, ?, ?)";
+			} else {
+				message = "Invalid role specified";
+				return Response.status(HttpServletResponse.SC_BAD_REQUEST)
+						.entity(new GeneralResponse(message)).build();
+			}
+
+			preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			preparedStatement.setString(1, name);
+			preparedStatement.setString(2, email);
+			preparedStatement.setString(3, hashedPassword);
+			preparedStatement.setString(4, role);
+			preparedStatement.setString(5, bio);
+
+			int rowsAffected = preparedStatement.executeUpdate();
+			if (rowsAffected > 0) {
+				message = "Test Center Account created successfully";
+				return Response.status(HttpServletResponse.SC_CREATED)
+						.entity(new GeneralResponse(message)).build();
+			} else {
+				message = "Failed to create Test Center Account ";
+				return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+						.entity(new GeneralResponse(message)).build();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			message = "An error occurred during Create Test Center Account";
+			return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+					.entity(new GeneralResponse(message)).build();
+		} finally {
+			try {
+				if (preparedStatement != null) {
+					preparedStatement.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private boolean userExists(String email,Connection connection) throws SQLException {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+			String query = "SELECT COUNT(*) FROM Users WHERE BINARY email = ?";
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, email);
+			resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				int count = resultSet.getInt(1);
+				return count > 0;
+			}
+			return false;
+		} finally {
+			if (resultSet != null) {
+				resultSet.close();
+			}
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+		}
+	}
+
+	private boolean userNameExistsForTester(String name, Connection connection) throws SQLException {
+		String query = "SELECT COUNT(*) AS count FROM Users WHERE REPLACE(LOWER(name), ' ', '') = REPLACE(LOWER(?), ' ', '') AND role = 'tester'";
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+			preparedStatement.setString(1, name);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					int count = resultSet.getInt("count");
+					return count > 0;
+				}
+			}
+		}
+		return false;
+	}
+
 
 }
