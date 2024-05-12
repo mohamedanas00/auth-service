@@ -31,6 +31,7 @@ public class AdminBSL {
 	@Inject
 	Hashing hashing;
 
+
 	public Response ViewInstructorsAccounts() {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
@@ -193,58 +194,80 @@ public class AdminBSL {
 			}
 		}
 	}
-	//TODO: Update User
-	public Response updateUser(int userId, JsonObject jsonObject) {
-		// Check if the user ID is valid
-		if (userId <= 0) {
-			return Response.status(Response.Status.BAD_REQUEST)
-					.entity(new GeneralResponse("Invalid user ID."))
-					.build();
-		}
 
-		// Extract the updated user details from the JSON object
-		String name = jsonObject.getString("name");
-		String email = jsonObject.getString("email");
-		String password = jsonObject.getString("password");
-		String role = jsonObject.getString("role");
+	public Response UpdateUserAccount(JsonObject jsonObject,int userId) {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String message = null;
+		try {
+			connection = DatabaseManager.getConnection();
 
-
-		try (Connection connection = DatabaseManager.getConnection()) {
-			// Check if the user exists
-			if (!authUtil.userExists(userId, connection)) {
+			String email = jsonObject.getString("email");
+			if (!authUtil.userExistsById(userId, connection)) {
+				message = "User Not Exist";
 				return Response.status(Response.Status.NOT_FOUND)
-						.entity(new GeneralResponse("User with ID " + userId + " not found."))
+						.entity(new GeneralResponse(message))
 						.build();
 			}
 
-			// Update the user details in the Users table
-			String updateUserQuery = "UPDATE Users SET name = ?, email = ?, password = ?, role = ? WHERE id = ?";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(updateUserQuery)) {
-				preparedStatement.setString(1, name);
-				preparedStatement.setString(2, email);
-				preparedStatement.setString(3, password);
-				preparedStatement.setString(4, role);
-				preparedStatement.setInt(5, userId);
-
-				int rowsAffected = preparedStatement.executeUpdate();
-
-				if (rowsAffected > 0) {
-					return Response.status(Response.Status.OK)
-							.entity(new GeneralResponse("User with ID " + userId + " updated successfully."))
-							.build();
-				} else {
-					return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-							.entity(new GeneralResponse("Failed to update user with ID " + userId + "."))
-							.build();
-				}
+			// Hash the password before storing, if present
+			String password = jsonObject.containsKey("password") ? jsonObject.getString("password") : null;
+			String hashedPassword = null;
+			if (password != null) {
+				hashedPassword = hashing.doHashing(password);
 			}
+
+			// Extract other fields if present
+			String bio = jsonObject.containsKey("bio") ? jsonObject.getString("bio") : null;
+
+			// Update the database
+			StringBuilder updateQuery = new StringBuilder("UPDATE Users SET");
+			List<String> setClauses = new ArrayList<>();
+			if (hashedPassword != null) {
+				setClauses.add(" password = ?");
+			}
+			if (bio != null) {
+				setClauses.add(" bio = ?");
+			}
+			updateQuery.append(String.join(",", setClauses));
+			updateQuery.append(" WHERE id = ?");
+
+			preparedStatement = connection.prepareStatement(updateQuery.toString());
+			int parameterIndex = 1;
+			if (hashedPassword != null) {
+				preparedStatement.setString(parameterIndex++, hashedPassword);
+			}
+			if (bio != null) {
+				preparedStatement.setString(parameterIndex++, bio);
+			}
+			preparedStatement.setInt(parameterIndex, userId);
+
+			int rowsAffected = preparedStatement.executeUpdate();
+
+			if (rowsAffected > 0) {
+				message = "Test Center Account updated successfully";
+				return Response.status(HttpServletResponse.SC_OK).entity(new GeneralResponse(message)).build();
+			}
+			message = "Error updating Test Center Account";
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new GeneralResponse(message)).build();
+
 		} catch (SQLException e) {
 			e.printStackTrace();
+			message = "Error updating Test Center Account";
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(new GeneralResponse("An error occurred while updating user with ID " + userId + "."))
+					.entity(new GeneralResponse(message))
 					.build();
+		} finally {
+			try {
+				if (preparedStatement != null) preparedStatement.close();
+				if (connection != null) connection.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
+
+
 
 
 

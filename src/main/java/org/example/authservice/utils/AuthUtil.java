@@ -9,10 +9,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.security.SecureRandom;
+import java.util.Random;
 
 @Stateless
 public class AuthUtil {
-
 	@Inject
 	RoleProvider roleProvider;
 
@@ -60,7 +61,7 @@ public class AuthUtil {
 		return null;
 	}
 
-	public boolean userExists(int id, Connection connection) throws SQLException {
+	public boolean userExistsById(int id, Connection connection) throws SQLException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		try {
@@ -82,6 +83,46 @@ public class AuthUtil {
 			}
 		}
 	}
+
+
+	public boolean userExists(String email,Connection connection) throws SQLException {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+			String query = "SELECT COUNT(*) FROM Users WHERE BINARY email = ?";
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, email);
+			resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				int count = resultSet.getInt(1);
+				return count > 0;
+			}
+			return false;
+		} finally {
+			if (resultSet != null) {
+				resultSet.close();
+			}
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+		}
+	}
+
+	public boolean isNameAlreadyExistsForTester(String name, Connection connection) throws SQLException {
+		String query = "SELECT COUNT(*) FROM Users WHERE name = ? AND role = 'tester'";
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+			preparedStatement.setString(1, name);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					int count = resultSet.getInt(1);
+					return count > 0;
+				}
+			}
+		}
+		return false;
+	}
+
+
 
 
 

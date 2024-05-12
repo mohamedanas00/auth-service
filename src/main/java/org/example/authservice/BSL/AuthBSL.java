@@ -1,13 +1,16 @@
 package org.example.authservice.BSL;
 
 import org.example.authservice.DB.DatabaseManager;
+import org.example.authservice.model.Account;
 import org.example.authservice.model.Instructor;
 import org.example.authservice.model.Logs;
 import org.example.authservice.model.User;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.model.response.SignInResponse;
 import org.example.authservice.model.response.TokenResponse;
+import org.example.authservice.utils.AuthUtil;
 import org.example.authservice.utils.Hashing;
+import org.example.authservice.utils.TestCenterGenerator;
 import org.example.authservice.utils.TokenService;
 
 import javax.ejb.Stateless;
@@ -26,6 +29,8 @@ public class AuthBSL {
 	Hashing hashing;
 	@Inject
 	GeneralResponse generalResponse;
+	@Inject
+	AuthUtil authUtil;
 
 	public Response signIn(String email, String password) throws IOException {
 		Connection connection = null;
@@ -36,7 +41,7 @@ public class AuthBSL {
 			connection = DatabaseManager.getConnection();
 
 			// Check if user already exists
-			if (!userExists(email,connection)) {
+			if (!authUtil.userExists(email,connection)) {
 				message="User NOT Exist please Register first";
 				generalResponse = new GeneralResponse(message);
 				return Response.status(HttpServletResponse.SC_CONFLICT).entity(generalResponse).build();
@@ -106,7 +111,7 @@ public class AuthBSL {
 
 			// Check if user already exists
 			String email = jsonObject.getString("email");
-			if (userExists(email, connection)) {
+			if (authUtil.userExists(email, connection)) {
 				message = "User already exists";
 				return Response.status(HttpServletResponse.SC_CONFLICT)
 						.entity(new GeneralResponse(message)).build();
@@ -188,9 +193,11 @@ public class AuthBSL {
 	}
 
 	public Response CreateTestCenterAccount(JsonObject jsonObject) {
+
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		String message = null;
+
 		try {
 			connection = DatabaseManager.getConnection();
 
@@ -201,43 +208,26 @@ public class AuthBSL {
 				return Response.status(HttpServletResponse.SC_CONFLICT)
 						.entity(new GeneralResponse(message)).build();
 			}
+			String email = TestCenterGenerator.generateEmail(name);
 
-			// Check if user already exists
-			String email = jsonObject.getString("email");
-			if (userExists(email, connection)) {
-				message = "User already exists";
-				return Response.status(HttpServletResponse.SC_CONFLICT)
-						.entity(new GeneralResponse(message)).build();
-			}
-
-			// Hash the password before storing
-			String password = jsonObject.getString("password");
+			String password = TestCenterGenerator.generateRandomPassword();
 			String hashedPassword = hashing.doHashing(password);
 
-			String role = jsonObject.getString("role");
-			String bio = jsonObject.getString("bio");
+			String query = "INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)";
 
-			String query = "";
-			if ( role.equals("tester")) {
-				query = "INSERT INTO Users (name, email, password, role,bio) VALUES (?, ?, ?, ?, ?)";
-			} else {
-				message = "Invalid role specified";
-				return Response.status(HttpServletResponse.SC_BAD_REQUEST)
-						.entity(new GeneralResponse(message)).build();
-			}
 
 			preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			preparedStatement.setString(1, name);
 			preparedStatement.setString(2, email);
 			preparedStatement.setString(3, hashedPassword);
-			preparedStatement.setString(4, role);
-			preparedStatement.setString(5, bio);
+			preparedStatement.setString(4, "tester");
 
 			int rowsAffected = preparedStatement.executeUpdate();
 			if (rowsAffected > 0) {
 				message = "Test Center Account created successfully";
+				Account account = new Account(email, password,message);
 				return Response.status(HttpServletResponse.SC_CREATED)
-						.entity(new GeneralResponse(message)).build();
+						.entity(account).build();
 			} else {
 				message = "Failed to create Test Center Account ";
 				return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
@@ -258,29 +248,6 @@ public class AuthBSL {
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
-			}
-		}
-	}
-
-	private boolean userExists(String email,Connection connection) throws SQLException {
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-		try {
-			String query = "SELECT COUNT(*) FROM Users WHERE BINARY email = ?";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, email);
-			resultSet = preparedStatement.executeQuery();
-			if (resultSet.next()) {
-				int count = resultSet.getInt(1);
-				return count > 0;
-			}
-			return false;
-		} finally {
-			if (resultSet != null) {
-				resultSet.close();
-			}
-			if (preparedStatement != null) {
-				preparedStatement.close();
 			}
 		}
 	}
@@ -322,6 +289,5 @@ public class AuthBSL {
 			}
 		}
 	}
-
 
 }
