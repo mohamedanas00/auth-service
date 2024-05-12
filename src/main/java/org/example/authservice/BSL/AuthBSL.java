@@ -72,7 +72,7 @@ public class AuthBSL {
 				payload.put("email", email);
 
 				String token = TokenService.generateToken(payload);
-				TokenResponse tokenResponse = new TokenResponse(token,userRole);
+				TokenResponse tokenResponse = new TokenResponse(token,name,userRole);
 				insertLog(connection,userId,email,userRole,"logged in successfully");
 				return Response.status(HttpServletResponse.SC_OK).entity(tokenResponse).build();
 			} else {
