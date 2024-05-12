@@ -2,6 +2,7 @@ package org.example.authservice.BSL;
 
 import org.example.authservice.DB.DatabaseManager;
 import org.example.authservice.model.Instructor;
+import org.example.authservice.model.Logs;
 import org.example.authservice.model.User;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.model.response.SignInResponse;
@@ -67,6 +68,7 @@ public class AuthBSL {
 
 				String token = TokenService.generateToken(payload);
 				TokenResponse tokenResponse = new TokenResponse(token,userRole);
+				insertLog(connection,userId,email,userRole,"logged in successfully");
 				return Response.status(HttpServletResponse.SC_OK).entity(tokenResponse).build();
 			} else {
 				message="Invalid email or password!";
@@ -156,6 +158,7 @@ public class AuthBSL {
 					preparedStatement.setString(2, jsonObject.getString("affiliation"));
 					preparedStatement.executeUpdate();
 				}
+				insertLog(connection,id,email,role,"registered successfully");
 
 				message = "User created successfully";
 				return Response.status(HttpServletResponse.SC_CREATED)
@@ -294,6 +297,30 @@ public class AuthBSL {
 			}
 		}
 		return false;
+	}
+
+	private void insertLog(Connection connection, int userId, String email, String role, String action) {
+		PreparedStatement preparedStatement = null;
+		try {
+			// Inserting log into the database
+			String insertLogQuery = "INSERT INTO logs (userId, email, role, action) VALUES (?, ?, ?, ?)";
+			preparedStatement = connection.prepareStatement(insertLogQuery);
+			preparedStatement.setInt(1, userId);
+			preparedStatement.setString(2, email);
+			preparedStatement.setString(3, role);
+			preparedStatement.setString(4, action);
+			preparedStatement.executeUpdate();
+		} catch (Exception e) {
+			System.out.println("An error occurred while inserting log: " + e.getMessage());
+		} finally {
+			try {
+				if (preparedStatement != null) {
+					preparedStatement.close();
+				}
+			} catch (Exception e) {
+				System.out.println("An error occurred while inserting log: " + e.getMessage());
+			}
+		}
 	}
 
 
