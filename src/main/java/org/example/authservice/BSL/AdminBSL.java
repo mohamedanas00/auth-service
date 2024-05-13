@@ -26,13 +26,13 @@ import java.util.List;
 @Stateless
 public class AdminBSL {
 	@Inject
-	GeneralResponse generalResponse;
+	private GeneralResponse generalResponse;
 	@Inject
-	AuthUtil authUtil;
+	private AuthUtil authUtil;
 	@Inject
-	Hashing hashing;
+	private Hashing hashing;
 	@EJB
-	DatabaseConnectionManager connectionManager;
+	private DatabaseConnectionManager connectionManager;
 
 	public Response ViewInstructorsAccounts() {
 		Connection connection = null;

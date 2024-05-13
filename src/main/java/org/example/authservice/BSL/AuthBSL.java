@@ -27,13 +27,13 @@ import java.util.Map;
 @Stateless
 public class AuthBSL {
 	@EJB
-	DatabaseConnectionManager connectionManager;
+	private DatabaseConnectionManager connectionManager;
 	@Inject
-	Hashing hashing;
+	private Hashing hashing;
 	@Inject
-	GeneralResponse generalResponse;
+	private GeneralResponse generalResponse;
 	@Inject
-	AuthUtil authUtil;
+	private AuthUtil authUtil;
 
 	public Response signIn(String email, String password) throws IOException {
 		Connection connection = null;

@@ -18,7 +18,7 @@ import java.util.List;
 @Stateless
 public class LogsBSL {
 	@EJB
-	DatabaseConnectionManager connectionManager;
+	private DatabaseConnectionManager connectionManager;
 
 	public Response GetLogs() {
 		Connection connection = null;

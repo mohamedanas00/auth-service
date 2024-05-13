@@ -23,7 +23,7 @@ public class TestCenterBSL {
 	@Inject
 	AuthUtil authUtil;
 	@EJB
-	DatabaseConnectionManager connectionManager;
+	private DatabaseConnectionManager connectionManager;
 
 
 	public Response UpdateUserAccount(JsonObject jsonObject, int userId) {
