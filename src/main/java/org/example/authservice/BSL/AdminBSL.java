@@ -2,7 +2,7 @@ package org.example.authservice.BSL;
 
 
 
-import org.example.authservice.DB.DatabaseManager;
+import org.example.authservice.DB.DatabaseConnectionManager;
 import org.example.authservice.model.Instructor;
 import org.example.authservice.model.Student;
 import org.example.authservice.model.User;
@@ -10,6 +10,7 @@ import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.utils.AuthUtil;
 import org.example.authservice.utils.Hashing;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.json.JsonObject;
@@ -30,7 +31,8 @@ public class AdminBSL {
 	AuthUtil authUtil;
 	@Inject
 	Hashing hashing;
-
+	@EJB
+	DatabaseConnectionManager connectionManager;
 
 	public Response ViewInstructorsAccounts() {
 		Connection connection = null;
@@ -39,7 +41,7 @@ public class AdminBSL {
 		List<Object> users = new ArrayList<>(); // List of either User or Instructor objects
 
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 			String query = "SELECT Users.id, Users.name, Users.email ,Users.bio ,Users.role, Instructors.affiliation, Instructors.years_experience " +
 					"FROM Users " +
 					"JOIN Instructors ON Users.id = Instructors.id";
@@ -67,7 +69,6 @@ public class AdminBSL {
 			try {
 				if (resultSet != null) resultSet.close();
 				if (preparedStatement != null) preparedStatement.close();
-				if (connection != null) connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -82,7 +83,7 @@ public class AdminBSL {
 		List<Object> users = new ArrayList<>(); // List of either User or Instructor objects
 
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 			String query = "SELECT Users.id, Users.name, Users.email, Users.bio, Users.role, Students.affiliation " +
 					"FROM Users " +
 					"JOIN Students ON Users.id = Students.id";
@@ -110,7 +111,6 @@ public class AdminBSL {
 			try {
 				if (resultSet != null) resultSet.close();
 				if (preparedStatement != null) preparedStatement.close();
-				if (connection != null) connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -124,7 +124,7 @@ public class AdminBSL {
 		List<Object> users = new ArrayList<>(); // List of either User or Instructor objects
 
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 			String query = "SELECT * FROM Users WHERE role = 'tester'";
 			preparedStatement = connection.prepareStatement(query);
 			resultSet = preparedStatement.executeQuery();
@@ -148,7 +148,6 @@ public class AdminBSL {
 			try {
 				if (resultSet != null) resultSet.close();
 				if (preparedStatement != null) preparedStatement.close();
-				if (connection != null) connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -164,7 +163,7 @@ public class AdminBSL {
 					.entity(generalResponse).build();
 		}
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 
 			String query = "DELETE FROM Users WHERE id = ?";
 			preparedStatement = connection.prepareStatement(query);
@@ -188,7 +187,6 @@ public class AdminBSL {
 		}finally {
 			try {
 				if (preparedStatement != null) preparedStatement.close();
-				if (connection != null) connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -200,7 +198,7 @@ public class AdminBSL {
 		PreparedStatement preparedStatement = null;
 		String message = null;
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 
 			String email = jsonObject.getString("email");
 			if (!authUtil.userExistsById(userId, connection)) {
@@ -260,7 +258,6 @@ public class AdminBSL {
 		} finally {
 			try {
 				if (preparedStatement != null) preparedStatement.close();
-				if (connection != null) connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

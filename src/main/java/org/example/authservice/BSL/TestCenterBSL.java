@@ -1,10 +1,12 @@
 package org.example.authservice.BSL;
 
-import org.example.authservice.DB.DatabaseManager;
+
+import org.example.authservice.DB.DatabaseConnectionManager;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.utils.AuthUtil;
 import org.example.authservice.utils.Hashing;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.json.JsonObject;
@@ -20,6 +22,8 @@ import java.util.List;
 public class TestCenterBSL {
 	@Inject
 	AuthUtil authUtil;
+	@EJB
+	DatabaseConnectionManager connectionManager;
 
 
 	public Response UpdateUserAccount(JsonObject jsonObject, int userId) {
@@ -27,7 +31,7 @@ public class TestCenterBSL {
 		PreparedStatement preparedStatement = null;
 		String message = null;
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 
 			// Check if user exists
 			if (!authUtil.userExistsById(userId, connection)) {
