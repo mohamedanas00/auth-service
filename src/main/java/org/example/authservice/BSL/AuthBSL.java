@@ -1,6 +1,6 @@
 package org.example.authservice.BSL;
 
-import org.example.authservice.DB.DatabaseManager;
+import org.example.authservice.DB.DatabaseConnectionManager;
 import org.example.authservice.model.Account;
 import org.example.authservice.model.Instructor;
 import org.example.authservice.model.Logs;
@@ -13,6 +13,7 @@ import org.example.authservice.utils.Hashing;
 import org.example.authservice.utils.TestCenterGenerator;
 import org.example.authservice.utils.TokenService;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.json.JsonObject;
@@ -25,12 +26,14 @@ import java.util.Map;
 
 @Stateless
 public class AuthBSL {
+	@EJB
+	private DatabaseConnectionManager connectionManager;
 	@Inject
-	Hashing hashing;
+	private Hashing hashing;
 	@Inject
-	GeneralResponse generalResponse;
+	private GeneralResponse generalResponse;
 	@Inject
-	AuthUtil authUtil;
+	private AuthUtil authUtil;
 
 	public Response signIn(String email, String password) throws IOException {
 		Connection connection = null;
@@ -38,7 +41,7 @@ public class AuthBSL {
 		ResultSet resultSet = null;
 		String message = null;
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 
 			// Check if user already exists
 			if (!authUtil.userExists(email,connection)) {
@@ -93,7 +96,7 @@ public class AuthBSL {
 				if (preparedStatement != null) {
 					preparedStatement.close();
 				}
-				if (connection != null) {
+				if(connection != null) {
 					connection.close();
 				}
 			} catch (Exception e) {
@@ -107,7 +110,7 @@ public class AuthBSL {
 		PreparedStatement preparedStatement = null;
 		String message = null;
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 
 			// Check if user already exists
 			String email = jsonObject.getString("email");
@@ -183,9 +186,7 @@ public class AuthBSL {
 				if (preparedStatement != null) {
 					preparedStatement.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
+
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -199,7 +200,7 @@ public class AuthBSL {
 		String message = null;
 
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 
 			// Additional check to ensure name not found for any tester
 			String name = jsonObject.getString("name");
@@ -243,9 +244,7 @@ public class AuthBSL {
 				if (preparedStatement != null) {
 					preparedStatement.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
+
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

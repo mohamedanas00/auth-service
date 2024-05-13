@@ -1,9 +1,10 @@
 package org.example.authservice.BSL;
 
-import org.example.authservice.DB.DatabaseManager;
+import org.example.authservice.DB.DatabaseConnectionManager;
 import org.example.authservice.model.Logs;
 import org.example.authservice.model.response.GeneralResponse;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
@@ -16,6 +17,8 @@ import java.util.List;
 
 @Stateless
 public class LogsBSL {
+	@EJB
+	private DatabaseConnectionManager connectionManager;
 
 	public Response GetLogs() {
 		Connection connection = null;
@@ -25,7 +28,7 @@ public class LogsBSL {
 		List<Logs> logsList = new ArrayList<>();
 
 		try {
-			connection = DatabaseManager.getConnection();
+			connection = connectionManager.getConnection();
 			String query = "SELECT * FROM logs";
 			preparedStatement = connection.prepareStatement(query);
 			resultSet = preparedStatement.executeQuery();
@@ -51,7 +54,7 @@ public class LogsBSL {
 			try {
 				if (resultSet != null) resultSet.close();
 				if (preparedStatement != null) preparedStatement.close();
-				if (connection != null) connection.close();
+
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

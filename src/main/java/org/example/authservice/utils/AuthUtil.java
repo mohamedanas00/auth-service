@@ -1,8 +1,10 @@
 package org.example.authservice.utils;
 
 
-import org.example.authservice.DB.DatabaseManager;
 
+import org.example.authservice.DB.DatabaseConnectionManager;
+
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.sql.Connection;
@@ -14,6 +16,8 @@ import java.util.Random;
 
 @Stateless
 public class AuthUtil {
+	@EJB
+	DatabaseConnectionManager connectionManager;
 	@Inject
 	RoleProvider roleProvider;
 
@@ -45,7 +49,7 @@ public class AuthUtil {
 	}
 
 	public String getUserRoleById(int id) {
-		try (Connection connection = DatabaseManager.getConnection();
+		try (Connection connection = connectionManager.getConnection();
 		     PreparedStatement preparedStatement = connection.prepareStatement("SELECT role FROM Users WHERE id = ?")) {
 			preparedStatement.setInt(1, id);
 			try (ResultSet resultSet = preparedStatement.executeQuery()) {

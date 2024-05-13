@@ -1,6 +1,5 @@
 package org.example.authservice.controller;
 import org.example.authservice.BSL.LogsBSL;
-import org.example.authservice.DB.DatabaseManager;
 import org.example.authservice.model.Logs;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.utils.AuthUtil;
