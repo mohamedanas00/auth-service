@@ -204,6 +204,8 @@ public class AuthBSL {
 
 			// Additional check to ensure name not found for any tester
 			String name = jsonObject.getString("name");
+			String bio = jsonObject.getString("bio");
+
 			if (userNameExistsForTester(name, connection)) {
 				message = "Name already exists for a TesterCenter";
 				return Response.status(HttpServletResponse.SC_CONFLICT)
@@ -214,14 +216,15 @@ public class AuthBSL {
 			String password = TestCenterGenerator.generateRandomPassword();
 			String hashedPassword = hashing.doHashing(password);
 
-			String query = "INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)";
+			String query = "INSERT INTO Users (name, email, password,bio ,role) VALUES (?, ?, ?, ?,?)";
 
 
 			preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			preparedStatement.setString(1, name);
 			preparedStatement.setString(2, email);
 			preparedStatement.setString(3, hashedPassword);
-			preparedStatement.setString(4, "tester");
+			preparedStatement.setString(4, bio);
+			preparedStatement.setString(5, "tester");
 
 			int rowsAffected = preparedStatement.executeUpdate();
 			if (rowsAffected > 0) {
