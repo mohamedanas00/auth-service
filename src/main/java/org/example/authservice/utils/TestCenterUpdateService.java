@@ -8,6 +8,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ProcessingException;
 
 public class TestCenterUpdateService {
 
@@ -19,15 +20,21 @@ public class TestCenterUpdateService {
 				.path("updateTestCenterBranch")
 				.path(String.valueOf(testCenterId));
 
-		Response response = target.request().put(Entity.entity(testCenter, MediaType.APPLICATION_JSON));
+		try {
+			Response response = target.request().put(Entity.entity(testCenter, MediaType.APPLICATION_JSON));
 
-		boolean result = false;
-
-		if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-			result = true;
+			boolean result = false;
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				result = true;
+			}
+			response.close();
+			return result;
+		} catch (ProcessingException e) {
+			// Log the exception if necessary
+			System.err.println("Error invoking REST request: " + e.getMessage());
+			return false;
+		} finally {
+			client.close();
 		}
-		response.close();
-
-		return result;
 	}
 }
