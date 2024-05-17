@@ -3,6 +3,7 @@ package org.example.authservice.BSL;
 import org.example.authservice.DB.DatabaseConnectionManager;
 import org.example.authservice.model.Logs;
 import org.example.authservice.model.response.GeneralResponse;
+import org.example.authservice.model.response.LogsResponse;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -43,7 +44,9 @@ public class LogsBSL {
 				logs.setCreatedAt(resultSet.getTimestamp("created_at"));
 				logsList.add(logs);
 			}
-			return Response.status(HttpServletResponse.SC_OK).entity(logsList).build();
+
+			LogsResponse logsResponse = new LogsResponse(logsList);
+			return Response.status(HttpServletResponse.SC_OK).entity(logsResponse).build();
 
 		} catch (SQLException e) {
 			message = "An error occurred during Getting Logs";
@@ -54,10 +57,11 @@ public class LogsBSL {
 			try {
 				if (resultSet != null) resultSet.close();
 				if (preparedStatement != null) preparedStatement.close();
-
+				if (connection != null) connection.close(); // Ensure connection is closed
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
 	}
+
 }
