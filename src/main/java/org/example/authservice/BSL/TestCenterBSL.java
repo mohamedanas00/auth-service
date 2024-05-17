@@ -47,7 +47,13 @@ public class TestCenterBSL {
             String name = jsonObject.containsKey("name") ? jsonObject.getString("name") : null;
             String email = jsonObject.containsKey("email") ? jsonObject.getString("email") : null;
             String bio = jsonObject.containsKey("bio") ? jsonObject.getString("bio") : null;
-
+            //Check that have data to update
+            if (name == null && email == null && bio == null) {
+                message = "No fields to update";
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new GeneralResponse(message))
+                        .build();
+            }
             // Check if the new name already exists for users with role "tester"
             if (name != null && authUtil.isNameAlreadyExistsForTester(name, connection)) {
                 message = "Name Already Exists for Test Center ";
