@@ -127,6 +127,23 @@ public class AuthUtil {
 	}
 
 
+	public boolean isEmailAlreadyExistsForTester(String email, Connection connection) throws SQLException {
+		String query = "SELECT COUNT(*) FROM Users WHERE email = ?";
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+			preparedStatement.setString(1, email);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					int count = resultSet.getInt(1);
+					return count > 0;
+				}
+			}
+		}
+		return false;
+	}
+
+
+
+
 
 
 

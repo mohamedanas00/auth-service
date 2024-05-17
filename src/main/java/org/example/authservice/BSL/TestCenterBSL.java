@@ -2,9 +2,11 @@ package org.example.authservice.BSL;
 
 
 import org.example.authservice.DB.DatabaseConnectionManager;
+import org.example.authservice.model.TestCenterService;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.utils.AuthUtil;
 import org.example.authservice.utils.Hashing;
+import org.example.authservice.utils.TestCenterUpdateService;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -33,6 +35,7 @@ public class TestCenterBSL {
         PreparedStatement preparedStatement = null;
         String message = null;
         try {
+
             connection = connectionManager.getConnection();
 
             // Check if user exists
@@ -47,6 +50,7 @@ public class TestCenterBSL {
             String name = jsonObject.containsKey("name") ? jsonObject.getString("name") : null;
             String email = jsonObject.containsKey("email") ? jsonObject.getString("email") : null;
             String bio = jsonObject.containsKey("bio") ? jsonObject.getString("bio") : null;
+
             //Check that have data to update
             if (name == null && email == null && bio == null) {
                 message = "No fields to update";
@@ -57,6 +61,20 @@ public class TestCenterBSL {
             // Check if the new name already exists for users with role "tester"
             if (name != null && authUtil.isNameAlreadyExistsForTester(name, connection)) {
                 message = "Name Already Exists for Test Center ";
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new GeneralResponse(message))
+                        .build();
+            }
+            if(email != null && authUtil.isEmailAlreadyExistsForTester(email, connection)){
+                message = "Email Already Exists for Test Center";
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new GeneralResponse(message))
+                        .build();
+            }
+            TestCenterUpdateService testCenterUpdateService = new TestCenterUpdateService();
+            TestCenterService testCenterService = new TestCenterService(name ,email);
+            if(!testCenterUpdateService.updateTestCenter(userId, testCenterService)){
+                message = "Please Try again later";
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new GeneralResponse(message))
                         .build();
@@ -83,12 +101,6 @@ public class TestCenterBSL {
             if (bio != null) {
                 setClauses.add(" bio = ?");
                 values.add(bio);
-            }
-            if (setClauses.isEmpty()) {
-                message = "No fields to update";
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new GeneralResponse(message))
-                        .build();
             }
 
             updateQuery.append(String.join(",", setClauses));

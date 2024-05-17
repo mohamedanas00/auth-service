@@ -4,6 +4,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ProcessingException;
 
 public class InstructorService {
 
@@ -15,14 +16,21 @@ public class InstructorService {
 				.path("DeleteInstructorCourses")
 				.path(String.valueOf(instructorId));
 
-		Response response = target.request().delete();
-		boolean result = false;
+		try {
+			Response response = target.request().delete();
+			boolean result = false;
 
-		if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-			return  true;
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				result = true;
+			}
+			response.close();
+			return result;
+		} catch (ProcessingException e) {
+			// Log the exception if necessary
+			System.err.println("Error invoking REST request: " + e.getMessage());
+			return false;
+		} finally {
+			client.close();
 		}
-		response.close();
-
-		return result;
 	}
 }
