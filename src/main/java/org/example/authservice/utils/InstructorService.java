@@ -22,6 +22,7 @@ public class InstructorService {
 			return  true;
 		}
 		response.close();
+		client.close();
 
 		return result;
 	}

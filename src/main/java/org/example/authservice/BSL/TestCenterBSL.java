@@ -2,9 +2,10 @@ package org.example.authservice.BSL;
 
 
 import org.example.authservice.DB.DatabaseConnectionManager;
+import org.example.authservice.model.TestCenterService;
 import org.example.authservice.model.response.GeneralResponse;
 import org.example.authservice.utils.AuthUtil;
-import org.example.authservice.utils.Hashing;
+import org.example.authservice.utils.TestCenterUpdateService;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -53,7 +54,13 @@ public class TestCenterBSL {
 						.entity(new GeneralResponse(message))
 						.build();
 			}
-
+			TestCenterUpdateService testCenterUpdateService = new TestCenterUpdateService();
+			if(!testCenterUpdateService.updateTestCenter(userId, new TestCenterService(name,email))) {
+				message = "please try again later";
+				return Response.status(Response.Status.NOT_FOUND)
+						.entity(new GeneralResponse(message))
+						.build();
+			}
 			// Update the database
 			StringBuilder updateQuery = new StringBuilder("UPDATE Users SET");
 			List<String> setClauses = new ArrayList<>();
